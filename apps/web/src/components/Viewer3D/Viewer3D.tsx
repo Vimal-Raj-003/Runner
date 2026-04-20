@@ -74,6 +74,7 @@ export function Viewer3D({ calc, onHandleReady }: Viewer3DProps) {
   const showDims = useWorkspace((s) => s.view.showDims);
   const partW = useWorkspace((s) => s.part.dimsMm.w);
   const partD = useWorkspace((s) => s.part.dimsMm.d);
+  const partH = useWorkspace((s) => s.part.dimsMm.h);
 
   const updateCamera = () => {
     const s = stateRef.current;
@@ -184,12 +185,13 @@ export function Viewer3D({ calc, onHandleReady }: Viewer3DProps) {
       hotRunner,
       showDims,
       gatesPerCavity,
-      partWidthMm: partW,
-      partDepthMm: partD,
+      partWidthMm:  partW,
+      partDepthMm:  partD,
+      partHeightMm: partH,
     });
     s.mainScene = scene;
     s.runnerMeshes = runnerMeshes;
-  }, [calc, profile, hotRunner, gatesPerCavity, showDims, partW, partD]);
+  }, [calc, profile, hotRunner, gatesPerCavity, showDims, partW, partD, partH]);
 
   // Interaction handlers
   const onPointerDown = (e: React.PointerEvent) => {

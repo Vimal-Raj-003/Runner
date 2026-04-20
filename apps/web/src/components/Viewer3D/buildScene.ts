@@ -16,6 +16,7 @@ export interface BuildSceneOptions {
   gatesPerCavity: 1 | 2;
   partWidthMm: number;
   partDepthMm: number;
+  partHeightMm: number;
 }
 
 export interface RunnerMeshMeta {
@@ -61,7 +62,7 @@ export function buildSceneFromCalc(calc: CalcResult, opts: BuildSceneOptions): B
   const RZ = 0;
   const gateBot = -5.5;
   const cavTop = -5.5;
-  const cavH = 4;
+  const cavH = opts.partHeightMm / MM_PER_UNIT;
   const sprTop = 12;
 
   const levelKeys = Array.from(new Set(calc.tree.edges.map((e) => e.levelKey))).sort();
