@@ -185,8 +185,8 @@ export function Viewer3D({ calc, onHandleReady }: Viewer3DProps) {
       hotRunner,
       showDims,
       gatesPerCavity,
-      partWidthMm:  partW,
-      partDepthMm:  partD,
+      partWidthMm: partW,
+      partDepthMm: partD,
       partHeightMm: partH,
     });
     s.mainScene = scene;
