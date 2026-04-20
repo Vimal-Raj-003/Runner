@@ -1,0 +1,320 @@
+- generic [ref=e2]:
+  - link "Skip to 3D viewer" [ref=e3] [cursor=pointer]:
+    - /url: "#viewer-3d"
+  - banner [ref=e4]:
+    - heading "Runner System" [level=1] [ref=e5]
+    - group "Cavity count" [ref=e7]:
+      - button "2 cavities" [ref=e8] [cursor=pointer]: "2"
+      - button "3 cavities" [ref=e9] [cursor=pointer]: "3"
+      - button "4 cavities" [ref=e10] [cursor=pointer]: "4"
+      - button "5 cavities" [ref=e11] [cursor=pointer]: "5"
+      - button "6 cavities" [ref=e12] [cursor=pointer]: "6"
+      - button "8 cavities" [pressed] [ref=e13] [cursor=pointer]: "8"
+      - button "10 cavities" [ref=e14] [cursor=pointer]: "10"
+      - button "12 cavities" [ref=e15] [cursor=pointer]: "12"
+      - button "16 cavities" [ref=e16] [cursor=pointer]: "16"
+      - button "20 cavities" [ref=e17] [cursor=pointer]: "20"
+      - button "24 cavities" [ref=e18] [cursor=pointer]: "24"
+      - button "32 cavities" [ref=e19] [cursor=pointer]: "32"
+    - generic [ref=e21]: Gates
+    - group "Gates per cavity" [ref=e22]:
+      - button "1" [pressed] [ref=e23] [cursor=pointer]
+      - button "2" [ref=e24] [cursor=pointer]
+    - button "Cold Runner" [ref=e26] [cursor=pointer]
+    - generic [ref=e27]:
+      - button "3D" [disabled] [pressed] [ref=e28]
+      - button "Eng Panel" [pressed] [ref=e29] [cursor=pointer]
+  - generic [ref=e30]:
+    - generic [ref=e31]: Layout
+    - radiogroup "Runner layout" [ref=e32]:
+      - radio "H-Bridge" [checked] [ref=e33] [cursor=pointer]
+      - radio "Radial/Star" [ref=e34] [cursor=pointer]
+      - radio "Fishbone Sym" [ref=e35] [cursor=pointer]
+      - radio "Fishbone Grad Ø" [ref=e36] [cursor=pointer]
+      - radio "Fishbone 1-Side" [ref=e37] [cursor=pointer]
+      - radio "Inline" [ref=e38] [cursor=pointer]
+      - radio "T-Runner" [ref=e39] [cursor=pointer]
+      - radio "S-Runner" [disabled] [ref=e40]
+      - radio "Cross Main" [disabled] [ref=e41]
+  - generic [ref=e42]:
+    - generic [ref=e43]:
+      - button "Increase cavity count" [ref=e44] [cursor=pointer]: +
+      - button "Decrease cavity count" [ref=e45] [cursor=pointer]: −
+      - button "Fit view to model" [ref=e46] [cursor=pointer]: Fit
+      - button "Dims" [ref=e47] [cursor=pointer]
+      - button "Reset" [ref=e48] [cursor=pointer]
+      - button "Runner Dims" [ref=e49] [cursor=pointer]
+    - generic [ref=e50]:
+      - generic [ref=e51]: View
+      - group "Camera preset" [ref=e52]:
+        - button "Set camera to Top" [ref=e53] [cursor=pointer]: Top
+        - button "Set camera to Bottom" [ref=e54] [cursor=pointer]: Bottom
+        - button "Set camera to Front" [ref=e55] [cursor=pointer]: Front
+        - button "Set camera to Back" [ref=e56] [cursor=pointer]: Back
+        - button "Set camera to Left" [ref=e57] [cursor=pointer]: Left
+        - button "Set camera to Right" [ref=e58] [cursor=pointer]: Right
+        - button "Set camera to ISO 1" [ref=e59] [cursor=pointer]: ISO 1
+        - button "Set camera to ISO 2" [ref=e60] [cursor=pointer]: ISO 2
+        - button "Set camera to ISO 3" [ref=e61] [cursor=pointer]: ISO 3
+        - button "Set camera to ISO 4" [ref=e62] [cursor=pointer]: ISO 4
+  - generic [ref=e63]:
+    - main "Mould layout 3D viewer" [ref=e64]:
+      - img "3D mould layout with runner network" [ref=e66]
+    - complementary "Engineering Panel" [ref=e67]:
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - heading "Engineering Panel" [level=2] [ref=e70]
+          - paragraph [ref=e71]: Calc v0.1.0 · 14 citations · 3 warnings
+        - button "Close Engineering Panel" [ref=e72] [cursor=pointer]:
+          - img [ref=e73]
+      - generic [ref=e75]:
+        - button "Input Parameters" [expanded] [ref=e76] [cursor=pointer]:
+          - img [ref=e77]
+          - generic [ref=e79]: Input Parameters
+        - generic [ref=e81]:
+          - generic [ref=e85]: Input Parameters
+          - generic [ref=e87]:
+            - generic [ref=e88]:
+              - text: Part Weight
+              - generic [ref=e89]: (g)
+            - spinbutton "Part Weight (g)" [ref=e90]: "50"
+          - generic [ref=e91]:
+            - generic [ref=e92]:
+              - text: Part Volume
+              - generic [ref=e93]: (mm³)
+            - spinbutton "Part Volume (mm³)" [ref=e94]: "55000"
+          - generic [ref=e95]:
+            - generic [ref=e96]:
+              - text: Wall Thickness
+              - generic [ref=e97]: (mm)
+            - spinbutton "Wall Thickness (mm)" [ref=e98]: "2"
+          - generic [ref=e99]:
+            - generic [ref=e100]:
+              - text: Projected Area
+              - generic [ref=e101]: (mm²)
+            - spinbutton "Projected Area (mm²)" [ref=e102]: "2500"
+          - generic [ref=e103]:
+            - generic [ref=e104]: Part W×D×H (mm)
+            - group "Part W×D×H (mm)" [ref=e105]:
+              - generic [ref=e106]: Width mm
+              - spinbutton "Width mm" [ref=e107]: "50"
+              - generic [ref=e108]: Depth mm
+              - spinbutton "Depth mm" [ref=e109]: "50"
+              - generic [ref=e110]: Height mm
+              - spinbutton "Height mm" [ref=e111]: "50"
+          - generic [ref=e112]:
+            - generic [ref=e113]:
+              - text: Nozzle Dia
+              - generic [ref=e114]: (mm)
+            - spinbutton "Nozzle Dia (mm)" [ref=e115]: "4"
+          - generic [ref=e116]:
+            - generic [ref=e117]:
+              - text: Inj. Pressure
+              - generic [ref=e118]: (bar)
+            - spinbutton "Inj. Pressure (bar)" [ref=e119]: "1500"
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - text: Clamp Force
+              - generic [ref=e122]: (t)
+            - spinbutton "Clamp Force (t)" [ref=e123]: "200"
+          - generic [ref=e124]:
+            - generic [ref=e125]: Material
+            - combobox "Material" [ref=e126]:
+              - option "LDPE · Film grade"
+              - option "HDPE · Injection grade"
+              - option "PS · General-purpose (GPPS)"
+              - option "HIPS · High-impact"
+              - option "PP · Homopolymer" [selected]
+              - option "PP · Copolymer"
+              - option "PC · Optical"
+              - option "POM · Homopolymer"
+              - option "POM · Copolymer"
+              - option "PMMA · Cast sheet grade"
+              - option "PA6 · Unfilled"
+              - option "PA66 · Unfilled"
+              - option "PA66 · GF30 (30% glass fibre)"
+              - option "CA · Cellulose Acetate"
+              - option "PVC · Rigid (uPVC)"
+              - option "PVC · Flexible (plasticised)"
+              - option "ABS · General-purpose"
+              - option "PC/ABS · Blend"
+              - option "PET · Bottle grade"
+              - option "TPU · Shore 85A"
+          - generic [ref=e127]:
+            - generic [ref=e128]: Runner Profile
+            - combobox "Runner Profile" [ref=e129]:
+              - option "Full Round" [selected]
+              - option "Trapezoidal"
+              - option "Modified Trapezoid"
+              - option "Hexagonal"
+              - option "Half Round"
+      - generic [ref=e130]:
+        - button "Runner Sizing" [expanded] [ref=e131] [cursor=pointer]:
+          - img [ref=e132]
+          - generic [ref=e134]: Runner Sizing
+        - generic [ref=e135]: D = ⁴√(W) × ⁴√(L) / 3.7
+        - generic [ref=e136]:
+          - generic [ref=e137]:
+            - generic [ref=e138]: Max runner path
+            - generic [ref=e139]: 126 mm
+          - generic [ref=e140]:
+            - generic [ref=e141]: Calculated Ø
+            - generic [ref=e142]: 2.41 mm
+          - generic [ref=e143]:
+            - generic [ref=e144]: Recommended Ø
+            - generic [ref=e145]: 3.0 mm
+          - generic [ref=e146]:
+            - generic [ref=e147]: Profile
+            - generic [ref=e148]: Full Round
+          - generic [ref=e149]:
+            - generic [ref=e150]: Efficiency ratio
+            - generic [ref=e151]: 0.25D
+          - generic [ref=e152]:
+            - generic [ref=e153]: Runner volume
+            - generic [ref=e154]: 4524 mm³
+          - generic [ref=e155]:
+            - generic [ref=e156]: Worst-path ΔP
+            - generic [ref=e157]: 105.51 MPa
+      - generic [ref=e158]:
+        - button "Gate Sizing" [expanded] [ref=e159] [cursor=pointer]:
+          - img [ref=e160]
+          - generic [ref=e162]: Gate Sizing
+        - generic [ref=e163]: h = n·t, W = n·√A / 30
+        - generic [ref=e164]:
+          - generic [ref=e165]:
+            - generic [ref=e166]: Material constant (n)
+            - generic [ref=e167]: "0.7"
+          - generic [ref=e168]:
+            - generic [ref=e169]: Gate depth (h)
+            - generic [ref=e170]: 1.40 mm
+          - generic [ref=e171]:
+            - generic [ref=e172]: Gate width (W)
+            - generic [ref=e173]: 1.17 mm
+          - generic [ref=e174]:
+            - generic [ref=e175]: Gate land (L)
+            - generic [ref=e176]: 0.5–1 mm
+          - generic [ref=e177]:
+            - generic [ref=e178]: Gates per cavity
+            - generic [ref=e179]: "1"
+          - generic [ref=e180]:
+            - generic [ref=e181]: Gate shear rate
+            - generic [ref=e182]: 145107 s⁻¹
+          - generic [ref=e183]:
+            - generic [ref=e184]: Gate shear stress
+            - generic [ref=e185]: 7.327 MPa
+      - generic [ref=e186]:
+        - button "Sprue Bush" [expanded] [ref=e187] [cursor=pointer]:
+          - img [ref=e188]
+          - generic [ref=e190]: Sprue Bush
+        - generic [ref=e191]:
+          - generic [ref=e192]:
+            - generic [ref=e193]: Nozzle Ø
+            - generic [ref=e194]: 4.0 mm
+          - generic [ref=e195]:
+            - generic [ref=e196]: Orifice Ø (nozzle + 0.75)
+            - generic [ref=e197]: 4.75 mm
+          - generic [ref=e198]:
+            - generic [ref=e199]: Exit Ø
+            - generic [ref=e200]: 7.54 mm
+          - generic [ref=e201]:
+            - generic [ref=e202]: Taper
+            - generic [ref=e203]: 2° incl.
+          - generic [ref=e204]:
+            - generic [ref=e205]: Sprue volume
+            - generic [ref=e206]: 2415 mm³
+      - generic [ref=e207]:
+        - button "Mechanical" [expanded] [ref=e208] [cursor=pointer]:
+          - img [ref=e209]
+          - generic [ref=e211]: Mechanical
+        - generic [ref=e212]:
+          - generic [ref=e213]:
+            - generic [ref=e214]: Required clamp
+            - generic [ref=e215]: 3616.8 t
+          - generic [ref=e216]:
+            - generic [ref=e217]: Clamp utilisation
+            - generic [ref=e219]: 1808.4 %
+          - generic [ref=e220]:
+            - generic [ref=e221]: Machine P utilisation
+            - generic [ref=e223]: 70.3 %
+      - generic [ref=e224]:
+        - button "Thermal" [expanded] [ref=e225] [cursor=pointer]:
+          - img [ref=e226]
+          - generic [ref=e228]: Thermal
+        - generic [ref=e229]:
+          - generic [ref=e230]:
+            - generic [ref=e231]: Fill time
+            - generic [ref=e232]: 0.00 s
+          - generic [ref=e233]:
+            - generic [ref=e234]: Freeze time
+            - generic [ref=e235]: 6.68 s
+          - generic [ref=e236]:
+            - generic [ref=e237]: ΔT along runner
+            - generic [ref=e238]: 0.3 °C
+          - generic [ref=e239]:
+            - generic [ref=e240]: Frozen layer
+            - generic [ref=e241]: 0.000 mm
+      - generic [ref=e242]:
+        - button "Balance" [expanded] [ref=e243] [cursor=pointer]:
+          - img [ref=e244]
+          - generic [ref=e246]: Balance
+        - generic [ref=e247]:
+          - generic [ref=e248]:
+            - generic [ref=e249]: Imbalance ratio
+            - generic [ref=e250]: 0.0 %
+          - generic [ref=e251]:
+            - generic [ref=e252]: Status
+            - generic [ref=e254]: BALANCED
+      - generic [ref=e255]:
+        - button "Yield" [expanded] [ref=e256] [cursor=pointer]:
+          - img [ref=e257]
+          - generic [ref=e259]: Yield
+        - generic [ref=e260]:
+          - generic [ref=e261]:
+            - generic [ref=e262]: Shot weight
+            - generic [ref=e263]: 339.7 g
+          - generic [ref=e264]:
+            - generic [ref=e265]: Part fraction
+            - generic [ref=e266]: 98.4 %
+          - generic [ref=e267]:
+            - generic [ref=e268]: Runner fraction
+            - generic [ref=e269]: 1.0 %
+      - generic [ref=e270]:
+        - button "Layout" [expanded] [ref=e271] [cursor=pointer]:
+          - img [ref=e272]
+          - generic [ref=e274]: Layout
+        - generic [ref=e275]:
+          - generic [ref=e276]:
+            - generic [ref=e277]: Layout ID
+            - generic [ref=e278]: h_bridge
+          - generic [ref=e279]:
+            - generic [ref=e280]: Cavities
+            - generic [ref=e281]: "8"
+          - generic [ref=e282]:
+            - generic [ref=e283]: Runner segments
+            - generic [ref=e284]: "18"
+          - generic [ref=e285]:
+            - generic [ref=e286]: System type
+            - generic [ref=e287]: Cold Runner
+      - generic [ref=e288]:
+        - button "Warnings 3" [expanded] [ref=e289] [cursor=pointer]:
+          - img [ref=e290]
+          - generic [ref=e292]: Warnings
+          - generic [ref=e293]: "3"
+        - list [ref=e295]:
+          - listitem [ref=e296]:
+            - generic [ref=e297]: WARN
+            - paragraph [ref=e298]: Gate shear rate 145107 s⁻¹ exceeds 100000 s⁻¹ limit for PP
+          - listitem [ref=e299]:
+            - generic [ref=e300]: WARN
+            - paragraph [ref=e301]: Gate shear stress 7.33 MPa exceeds 0.25 MPa limit
+          - listitem [ref=e302]:
+            - generic [ref=e303]: ERROR
+            - paragraph [ref=e304]: Required clamp 3617 t exceeds machine 200 t
+      - button "Citations 14" [ref=e306] [cursor=pointer]:
+        - img [ref=e307]
+        - generic [ref=e309]: Citations
+        - generic [ref=e310]: "14"
+      - button "Gate Types Reference 13" [ref=e312] [cursor=pointer]:
+        - img [ref=e313]
+        - generic [ref=e315]: Gate Types Reference
+        - generic [ref=e316]: "13"

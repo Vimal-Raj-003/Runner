@@ -1,0 +1,23 @@
+{
+  "name": "runner-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Industrial-grade injection-mould runner and gate design tool",
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "web": "pnpm --filter @runner/web",
+    "core": "pnpm --filter @runner/core"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

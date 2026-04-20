@@ -1,0 +1,350 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]: Runner System
+    - button "2" [ref=e5] [cursor=pointer]
+    - button "3" [ref=e6] [cursor=pointer]
+    - button "4" [ref=e7] [cursor=pointer]
+    - button "5" [ref=e8] [cursor=pointer]
+    - button "6" [ref=e9] [cursor=pointer]
+    - button "8" [ref=e10] [cursor=pointer]
+    - button "10" [ref=e11] [cursor=pointer]
+    - button "12" [ref=e12] [cursor=pointer]
+    - button "16" [ref=e13] [cursor=pointer]
+    - button "20" [ref=e14] [cursor=pointer]
+    - button "24" [ref=e15] [cursor=pointer]
+    - button "32" [ref=e16] [cursor=pointer]
+    - generic [ref=e17]: "Gates:"
+    - button "1" [ref=e18] [cursor=pointer]
+    - button "2" [ref=e19] [cursor=pointer]
+    - button "Cold Runner" [ref=e20] [cursor=pointer]
+    - button "3D" [ref=e21] [cursor=pointer]
+    - button "Eng Panel" [ref=e22] [cursor=pointer]
+  - generic [ref=e23]:
+    - generic [ref=e24]: "LAYOUT:"
+    - button "H-Bridge" [ref=e25] [cursor=pointer]
+    - button "Radial/Star" [ref=e26] [cursor=pointer]
+    - button "Fishbone Sym" [ref=e27] [cursor=pointer]
+    - button "Fishbone Grad Ø" [ref=e28] [cursor=pointer]
+    - button "Fishbone 1-Side" [ref=e29] [cursor=pointer]
+    - button "Inline" [ref=e30] [cursor=pointer]
+    - button "T-Runner" [ref=e31] [cursor=pointer]
+    - button "S-Runner" [disabled] [ref=e32]
+    - button "Cross Main" [disabled] [ref=e33]
+  - generic [ref=e34]:
+    - generic [ref=e35]:
+      - button "+" [ref=e36] [cursor=pointer]
+      - button "−" [ref=e37] [cursor=pointer]
+      - button "Fit" [ref=e38] [cursor=pointer]
+      - button "Dims" [ref=e39] [cursor=pointer]
+      - button "Reset" [ref=e40] [cursor=pointer]
+      - button "Runner Dims" [ref=e41] [cursor=pointer]
+    - generic [ref=e42]:
+      - generic [ref=e43]: "VIEW:"
+      - button "Top" [ref=e44] [cursor=pointer]
+      - button "Bottom" [ref=e45] [cursor=pointer]
+      - button "Front" [ref=e46] [cursor=pointer]
+      - button "Back" [ref=e47] [cursor=pointer]
+      - button "Left" [ref=e48] [cursor=pointer]
+      - button "Right" [ref=e49] [cursor=pointer]
+      - button "ISO 1" [ref=e50] [cursor=pointer]
+      - button "ISO 2" [ref=e51] [cursor=pointer]
+      - button "ISO 3" [ref=e52] [cursor=pointer]
+      - button "ISO 4" [ref=e53] [cursor=pointer]
+  - complementary [ref=e58]:
+    - generic [ref=e59]: Engineering Panel
+    - generic [ref=e60]:
+      - generic [ref=e62]: Input Parameters
+      - generic [ref=e63]:
+        - generic [ref=e64]: Part Weight (g)
+        - spinbutton [ref=e65]: "50"
+      - generic [ref=e66]:
+        - generic [ref=e67]: Part Volume (mm³)
+        - spinbutton [ref=e68]: "55000"
+      - generic [ref=e69]:
+        - generic [ref=e70]: Wall Thickness (mm)
+        - spinbutton [ref=e71]: "2"
+      - generic [ref=e72]:
+        - generic [ref=e73]: Projected Area (mm²)
+        - spinbutton [ref=e74]: "2500"
+      - generic [ref=e75]:
+        - generic [ref=e76]: Part W×D×H (mm)
+        - textbox [ref=e77]: "50"
+        - textbox [ref=e78]: "50"
+        - textbox [ref=e79]: "50"
+      - generic [ref=e80]:
+        - generic [ref=e81]: Nozzle Dia (mm)
+        - spinbutton [ref=e82]: "4"
+      - generic [ref=e83]:
+        - generic [ref=e84]: Inj. Pressure (bar)
+        - spinbutton [ref=e85]: "1500"
+      - generic [ref=e86]:
+        - generic [ref=e87]: Clamp Force (t)
+        - spinbutton [ref=e88]: "200"
+      - generic [ref=e89]:
+        - generic [ref=e90]: Material
+        - combobox [ref=e91]:
+          - option "LDPE Film grade"
+          - option "HDPE Injection grade"
+          - option "PS General-purpose (GPPS)"
+          - option "HIPS High-impact"
+          - option "PP Homopolymer" [selected]
+          - option "PP Copolymer"
+          - option "PC Optical"
+          - option "POM Homopolymer"
+          - option "POM Copolymer"
+          - option "PMMA Cast sheet grade"
+          - option "PA6 Unfilled"
+          - option "PA66 Unfilled"
+          - option "PA66 GF30 (30% glass fibre)"
+          - option "CA Cellulose Acetate"
+          - option "PVC Rigid (uPVC)"
+          - option "PVC Flexible (plasticised)"
+          - option "ABS General-purpose"
+          - option "PC/ABS Blend"
+          - option "PET Bottle grade"
+          - option "TPU Shore 85A"
+      - generic [ref=e92]:
+        - generic [ref=e93]: Runner Profile
+        - combobox [ref=e94]:
+          - option "Full Round" [selected]
+          - option "Trapezoidal"
+          - option "Modified Trapezoid"
+          - option "Hexagonal"
+          - option "Half Round"
+    - generic [ref=e95]:
+      - generic [ref=e96]: Runner Sizing
+      - generic [ref=e97]: D = ⁴√(W) × ⁴√(L) / 3.7
+    - generic [ref=e98]:
+      - generic [ref=e99]: Max runner path
+      - generic [ref=e100]: 126 mm
+    - generic [ref=e101]:
+      - generic [ref=e102]: Calculated Ø
+      - generic [ref=e103]: 2.41 mm
+    - generic [ref=e104]:
+      - generic [ref=e105]: Recommended Ø
+      - generic [ref=e106]: 3.0 mm
+    - generic [ref=e107]:
+      - generic [ref=e108]: Profile
+      - generic [ref=e109]: Full Round
+    - generic [ref=e110]:
+      - generic [ref=e111]: Efficiency ratio
+      - generic [ref=e112]: 0.25D
+    - generic [ref=e113]:
+      - generic [ref=e114]: Total runner volume
+      - generic [ref=e115]: 4524 mm³
+    - generic [ref=e116]:
+      - generic [ref=e117]: Worst-path ΔP
+      - generic [ref=e118]: 105.51 MPa
+    - generic [ref=e119]:
+      - generic [ref=e120]: Gate Sizing
+      - generic [ref=e121]: h = n·t, W = n·√A / 30
+    - generic [ref=e122]:
+      - generic [ref=e123]: Material constant (n)
+      - generic [ref=e124]: "0.7"
+    - generic [ref=e125]:
+      - generic [ref=e126]: Gate depth (h)
+      - generic [ref=e127]: 1.40 mm
+    - generic [ref=e128]:
+      - generic [ref=e129]: Gate width (W)
+      - generic [ref=e130]: 1.17 mm
+    - generic [ref=e131]:
+      - generic [ref=e132]: Gate land (L)
+      - generic [ref=e133]: 0.5–1 mm
+    - generic [ref=e134]:
+      - generic [ref=e135]: Gates per cavity
+      - generic [ref=e136]: "1"
+    - generic [ref=e137]:
+      - generic [ref=e138]: Gate shear rate
+      - generic [ref=e139]: 145107 s⁻¹
+    - generic [ref=e140]:
+      - generic [ref=e141]: Gate shear stress
+      - generic [ref=e142]: 7.327 MPa
+    - generic [ref=e144]: Sprue Bush
+    - generic [ref=e145]:
+      - generic [ref=e146]: Nozzle Ø
+      - generic [ref=e147]: 4.0 mm
+    - generic [ref=e148]:
+      - generic [ref=e149]: Orifice Ø (nozzle + 0.75)
+      - generic [ref=e150]: 4.75 mm
+    - generic [ref=e151]:
+      - generic [ref=e152]: Exit Ø
+      - generic [ref=e153]: 7.54 mm
+    - generic [ref=e154]:
+      - generic [ref=e155]: Taper
+      - generic [ref=e156]: 2° incl.
+    - generic [ref=e157]:
+      - generic [ref=e158]: Sprue volume
+      - generic [ref=e159]: 2415 mm³
+    - generic [ref=e161]: Mechanical
+    - generic [ref=e162]:
+      - generic [ref=e163]: Required clamp
+      - generic [ref=e164]: 3616.8 t
+    - generic [ref=e165]:
+      - generic [ref=e166]: Clamp utilisation
+      - generic [ref=e168]: 1808.4 %
+    - generic [ref=e169]:
+      - generic [ref=e170]: Machine P utilisation
+      - generic [ref=e172]: 70.3 %
+    - generic [ref=e174]: Thermal
+    - generic [ref=e175]:
+      - generic [ref=e176]: Fill time
+      - generic [ref=e177]: 0.00 s
+    - generic [ref=e178]:
+      - generic [ref=e179]: Freeze time
+      - generic [ref=e180]: 6.68 s
+    - generic [ref=e181]:
+      - generic [ref=e182]: ΔT along runner
+      - generic [ref=e183]: 0.3 °C
+    - generic [ref=e184]:
+      - generic [ref=e185]: Frozen layer
+      - generic [ref=e186]: 0.000 mm
+    - generic [ref=e188]: Balance
+    - generic [ref=e189]:
+      - generic [ref=e190]: Imbalance ratio
+      - generic [ref=e191]: 0.0 %
+    - generic [ref=e192]:
+      - generic [ref=e193]: Status
+      - generic [ref=e195]: BALANCED
+    - generic [ref=e197]: Yield
+    - generic [ref=e198]:
+      - generic [ref=e199]: Shot weight
+      - generic [ref=e200]: 339.7 g
+    - generic [ref=e201]:
+      - generic [ref=e202]: Part fraction
+      - generic [ref=e203]: 98.4 %
+    - generic [ref=e204]:
+      - generic [ref=e205]: Runner fraction
+      - generic [ref=e206]: 1.0 %
+    - generic [ref=e208]: "Layout: h_bridge"
+    - generic [ref=e209]:
+      - generic [ref=e210]: Cavities
+      - generic [ref=e211]: "8"
+    - generic [ref=e212]:
+      - generic [ref=e213]: Runner segments
+      - generic [ref=e214]: "18"
+    - generic [ref=e215]:
+      - generic [ref=e216]: System type
+      - generic [ref=e217]: Cold Runner
+    - generic [ref=e219]: Warnings
+    - generic [ref=e220]:
+      - generic [ref=e221]:
+        - generic [ref=e222]: WARN
+        - generic [ref=e223]: Gate shear rate 145107 s⁻¹ exceeds 100000 s⁻¹ limit for PP
+      - generic [ref=e224]:
+        - generic [ref=e225]: WARN
+        - generic [ref=e226]: Gate shear stress 7.33 MPa exceeds 0.25 MPa limit
+      - generic [ref=e227]:
+        - generic [ref=e228]: ERROR
+        - generic [ref=e229]: Required clamp 3617 t exceeds machine 200 t
+    - generic [ref=e231]: Citations
+    - generic [ref=e232]:
+      - generic [ref=e233]:
+        - generic [ref=e234]: D = ⁴√(W · L) / 3.7
+        - generic [ref=e235]: Rosato, DiMattia & Rosato, Injection Molding Handbook (2000), §3.2
+      - generic [ref=e236]:
+        - generic [ref=e237]: h = n · t
+        - generic [ref=e238]: Beaumont, Mould Design (1974), p.87
+      - generic [ref=e239]:
+        - generic [ref=e240]: W = n · √A / 30
+        - generic [ref=e241]: Beaumont, Mould Design (1974) / Rosato §5.4
+      - generic [ref=e242]:
+        - generic [ref=e243]: taper = 2° incl., orifice = nozzle + 0.75 mm
+        - generic [ref=e244]: DME / HASCO sprue-bush catalogues
+      - generic [ref=e245]:
+        - generic [ref=e246]: F [t] = (A_proj · P_inj) / 10000
+        - generic [ref=e247]: Rees, Mold Engineering 2e (2002), §4
+      - generic [ref=e248]:
+        - generic [ref=e249]: ΔP = 128 η Q L / (π r⁴)
+        - generic [ref=e250]: Bird, Stewart, Lightfoot, Transport Phenomena (1960); Menges & Mohren (1993)
+      - generic [ref=e251]:
+        - generic [ref=e252]: ΔP′ = ΔP · n / (3 n + 1)
+        - generic [ref=e253]: Menges & Mohren, How to Make Injection Molds (1993)
+      - generic [ref=e254]:
+        - generic [ref=e255]: γ̇ = 6 Q / (W · h²)
+        - generic [ref=e256]: Rees, Mold Engineering 2e (2002), §4.3
+      - generic [ref=e257]:
+        - generic [ref=e258]: τ = η · γ̇
+        - generic [ref=e259]: Menges & Mohren (1993)
+      - generic [ref=e260]:
+        - generic [ref=e261]: t_fill = V / (ρ · v_gate)
+        - generic [ref=e262]: Rees (2002)
+      - generic [ref=e263]:
+        - generic [ref=e264]: t_c = s² / (π² α) · ln[(4/π)(T_m − T_w) / (T_e − T_w)]
+        - generic [ref=e265]: Menges & Ballman (1986)
+      - generic [ref=e266]:
+        - generic [ref=e267]: ΔT = (T₀ − T_w) · exp(−h · A / (ṁ · cp))
+        - generic [ref=e268]: Menges & Ballman, Thermal Aspects of Plastic Processing (1986)
+      - generic [ref=e269]:
+        - generic [ref=e270]: σ(L/D)/mean(L/D) < 0.10 ⇒ balanced
+        - generic [ref=e271]: Beaumont, Runner and Gating Design Handbook (2007)
+      - generic [ref=e272]:
+        - generic [ref=e273]: W_shot = ρ_melt · (V_cav · N + V_runner); yield = (V_cav · N) / (V_cav · N + V_runner)
+        - generic [ref=e274]: Rosato et al. (2000), §7.2
+    - generic [ref=e276]: Gate Types Reference
+    - generic [ref=e277]: 13 types
+    - generic [ref=e278]:
+      - generic [ref=e279]:
+        - generic [ref=e280]:
+          - generic [ref=e281]: Sprue Gate
+          - generic [ref=e282]: "[Manual]"
+        - generic [ref=e283]: Direct feed, large mark, single cavity
+      - generic [ref=e284]:
+        - generic [ref=e285]:
+          - generic [ref=e286]: Edge/Side Gate
+          - generic [ref=e287]: "[Manual]"
+        - generic [ref=e288]: Most common, rectangular channel at parting line
+      - generic [ref=e289]:
+        - generic [ref=e290]:
+          - generic [ref=e291]: Tab Gate
+          - generic [ref=e292]: "[Manual]"
+        - generic [ref=e293]: Reduces stress via 90° turn, for solid blocks
+      - generic [ref=e294]:
+        - generic [ref=e295]:
+          - generic [ref=e296]: Overlap Gate
+          - generic [ref=e297]: "[Manual]"
+        - generic [ref=e298]: Prevents jetting, bridges to opposite wall
+      - generic [ref=e299]:
+        - generic [ref=e300]:
+          - generic [ref=e301]: Fan Gate
+          - generic [ref=e302]: "[Manual]"
+        - generic [ref=e303]: Wide entry for thin-wall large-area parts
+      - generic [ref=e304]:
+        - generic [ref=e305]:
+          - generic [ref=e306]: Film/Flash Gate
+          - generic [ref=e307]: "[Manual]"
+        - generic [ref=e308]: Full-width thin gate for flat parts
+      - generic [ref=e309]:
+        - generic [ref=e310]:
+          - generic [ref=e311]: Diaphragm Gate
+          - generic [ref=e312]: "[Manual]"
+        - generic [ref=e313]: 360° feed for round parts, no weld lines
+      - generic [ref=e314]:
+        - generic [ref=e315]:
+          - generic [ref=e316]: Ring Gate
+          - generic [ref=e317]: "[Manual]"
+        - generic [ref=e318]: External ring feed for tubular parts
+      - generic [ref=e319]:
+        - generic [ref=e320]:
+          - generic [ref=e321]: Spoke/Multipoint
+          - generic [ref=e322]: "[Manual]"
+        - generic [ref=e323]: Multiple entry points from ring
+      - generic [ref=e324]:
+        - generic [ref=e325]:
+          - generic [ref=e326]: Pin Gate
+          - generic [ref=e327]: "[Auto]"
+        - generic [ref=e328]: Small round gate, 3-plate or hot runner
+      - generic [ref=e329]:
+        - generic [ref=e330]:
+          - generic [ref=e331]: Submarine/Tunnel
+          - generic [ref=e332]: "[Auto]"
+        - generic [ref=e333]: Below parting line, auto-shear on open
+      - generic [ref=e334]:
+        - generic [ref=e335]:
+          - generic [ref=e336]: Hot Runner Gate
+          - generic [ref=e337]: "[Auto]"
+        - generic [ref=e338]: Heated nozzle, no runner waste
+      - generic [ref=e339]:
+        - generic [ref=e340]:
+          - generic [ref=e341]: Valve Gate
+          - generic [ref=e342]: "[Auto]"
+        - generic [ref=e343]: Mechanical valve in hot runner nozzle
