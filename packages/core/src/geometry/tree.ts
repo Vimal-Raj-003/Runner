@@ -40,6 +40,12 @@ export interface RunnerEdge {
   levelName: string;
   /** Stable level key used by UI for per-level overrides */
   levelKey: string;
+  /**
+   * True for the vertical gate drop between a runner-plane gate junction
+   * and its cavity. Drop edges are zero-length in 2D layout (parent and
+   * child share x,z) but carry the cylinder height in `lenMm`.
+   */
+  isDrop?: boolean;
 }
 
 export interface Cavity {
@@ -56,14 +62,15 @@ export interface RunnerTree {
   readonly byLevel: Map<string, RunnerEdge[]>;
 }
 
-export function levelName(depth: number): string {
+export function levelName(depth: number, isDrop = false): string {
+  if (isDrop) return 'Gate Drop';
   if (depth === 0) return 'Main Runner';
   if (depth === 1) return 'Sub Runner';
   return `Branch Runner ${depth - 1}`;
 }
 
-export function levelKeyOf(depth: number): string {
-  return `L${depth}`;
+export function levelKeyOf(depth: number, isDrop = false): string {
+  return isDrop ? 'L_drop' : `L${depth}`;
 }
 
 /** Compute 2D euclidean distance between two points. */

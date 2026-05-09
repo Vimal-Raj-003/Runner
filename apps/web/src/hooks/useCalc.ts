@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { runCalculations, findMaterial, MATERIAL_SEED, type CalcResult } from '@runner/core';
-import { useWorkspace } from '@/state/store';
+import { useWorkspace, BALANCE_MODE_LAMBDA } from '@/state/store';
 
 export function useCalc(): CalcResult {
   const part = useWorkspace((s) => s.part);
@@ -15,8 +15,16 @@ export function useCalc(): CalcResult {
   const machine = useWorkspace((s) => s.machine);
   const diaOverrides = useWorkspace((s) => s.diaOverrides);
   const lenOverrides = useWorkspace((s) => s.lenOverrides);
+  const diaEdgeOverrides = useWorkspace((s) => s.diaEdgeOverrides);
+  const lenEdgeOverrides = useWorkspace((s) => s.lenEdgeOverrides);
+  const balanceMode = useWorkspace((s) => s.balanceMode);
+  const gatePoint = useWorkspace((s) => s.gatePoint);
+  const useGateDrop = useWorkspace((s) => s.useGateDrop);
+  const partOverlapMarginMm = useWorkspace((s) => s.partOverlapMarginMm);
+  const autoMirrorParts = useWorkspace((s) => s.autoMirrorParts);
 
   const material = findMaterial(materialId) ?? MATERIAL_SEED[0]!;
+  const balanceVolumeWeight = BALANCE_MODE_LAMBDA[balanceMode];
 
   return useMemo(() => {
     return runCalculations({
@@ -28,7 +36,17 @@ export function useCalc(): CalcResult {
       hotRunner,
       material,
       machine,
-      overrides: { diaByLevel: diaOverrides, lenByLevel: lenOverrides },
+      overrides: {
+        diaByLevel: diaOverrides,
+        lenByLevel: lenOverrides,
+        diaByEdge: diaEdgeOverrides,
+        lenByEdge: lenEdgeOverrides,
+      },
+      balanceVolumeWeight,
+      gate: gatePoint ? { partLocalPoint: gatePoint } : undefined,
+      useGateDrop,
+      partOverlapMarginMm,
+      autoMirrorGate: autoMirrorParts && !!gatePoint,
     });
   }, [
     part,
@@ -41,5 +59,12 @@ export function useCalc(): CalcResult {
     machine,
     diaOverrides,
     lenOverrides,
+    diaEdgeOverrides,
+    lenEdgeOverrides,
+    balanceVolumeWeight,
+    gatePoint,
+    useGateDrop,
+    partOverlapMarginMm,
+    autoMirrorParts,
   ]);
 }

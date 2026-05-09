@@ -6,9 +6,9 @@
  * recurse. Upgrade: emits proper tree with parent/child pointers.
  */
 
-import { addCavity, addEdge, addNode, buildTree, diaForDepth, newContext } from './build';
+import { addCavityWithDrop, addEdge, addNode, buildTree, diaForDepth, newContext } from './build';
 import type { LayoutGenerator } from './types';
-import type { Cavity, RunnerTree } from '../geometry/tree';
+import type { Cavity, RunnerNode, RunnerTree } from '../geometry/tree';
 
 const SPACING = 80; // mm between cavity centres
 const BASE_DIA = 8;  // mm — nominal main runner
@@ -36,12 +36,20 @@ export const hBridgeLayout: LayoutGenerator = {
     const rows = n / cols;
 
     const cavs: Cavity[] = [];
+    // Cavity-id → gate-junction node, so the recursion can connect runner
+    // edges to the gate (not the cavity) and the drop edge handles the
+    // runner-plane → cavity-top transition.
+    const gateById = new Map<number, RunnerNode>();
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const x = (c - (cols - 1) / 2) * SPACING;
         const z = (r - (rows - 1) / 2) * SPACING;
-        const { cavity } = addCavity(ctx, x, z);
+        // Drop depth = max depth + 1; for H-Bridge the recursion produces
+        // up to depth ⌈log2 n⌉, so we pick a comfortably-deeper drop depth.
+        const dropDepth = Math.max(2, lvl);
+        const { gate, cavity } = addCavityWithDrop(ctx, x, z, dropDepth);
         cavs.push(cavity);
+        gateById.set(cavity.id, gate);
       }
     }
 
@@ -51,10 +59,10 @@ export const hBridgeLayout: LayoutGenerator = {
       if (points.length === 1) {
         const target = points[0]!;
         if (target.cavity) {
-          const cavNode = ctx.nodes.find((n) => n.cavityId === target.cavity!.id && n.kind === 'cavity');
+          const gate = gateById.get(target.cavity.id);
           const parent = ctx.nodes.find((n) => n.id === parentNodeId);
-          if (cavNode && parent) {
-            addEdge(ctx, parent, cavNode, depth, diaForDepth(BASE_DIA, depth));
+          if (gate && parent) {
+            addEdge(ctx, parent, gate, depth, diaForDepth(BASE_DIA, depth));
           }
         }
         return;
@@ -62,15 +70,28 @@ export const hBridgeLayout: LayoutGenerator = {
       if (points.length === 2) {
         const mx = (points[0]!.x + points[1]!.x) / 2;
         const mz = (points[0]!.z + points[1]!.z) / 2;
-        const junction = addNode(ctx, 'junction', mx, mz);
         const parent = ctx.nodes.find((n) => n.id === parentNodeId);
-        if (parent) addEdge(ctx, parent, junction, depth, diaForDepth(BASE_DIA, depth));
+        if (!parent) return;
+
+        const collapsed =
+          Math.abs(mx - parent.x) < 1e-6 && Math.abs(mz - parent.z) < 1e-6;
+
+        if (collapsed) {
+          for (const p of points) {
+            const gate = p.cavity ? gateById.get(p.cavity.id) : undefined;
+            if (gate) {
+              addEdge(ctx, parent, gate, depth, diaForDepth(BASE_DIA, depth));
+            }
+          }
+          return;
+        }
+
+        const junction = addNode(ctx, 'junction', mx, mz);
+        addEdge(ctx, parent, junction, depth, diaForDepth(BASE_DIA, depth));
         for (const p of points) {
-          const cavNode = p.cavity
-            ? ctx.nodes.find((n) => n.cavityId === p.cavity!.id && n.kind === 'cavity')
-            : undefined;
-          if (cavNode) {
-            addEdge(ctx, junction, cavNode, depth + 1, diaForDepth(BASE_DIA, depth + 1));
+          const gate = p.cavity ? gateById.get(p.cavity.id) : undefined;
+          if (gate) {
+            addEdge(ctx, junction, gate, depth + 1, diaForDepth(BASE_DIA, depth + 1));
           }
         }
         return;

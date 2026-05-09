@@ -23,7 +23,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${firaSans.variable} ${firaCode.variable}`}>
+    // suppressHydrationWarning on <html>: some browser extensions
+    // (e.g. Grammarly, Dark Reader, "crxlauncher" launcher add-ons)
+    // inject extra attributes onto <html> after the server-rendered
+    // HTML lands but before React hydrates. The mismatch is harmless
+    // — React would skip the patch anyway — and this flag silences
+    // the dev-only warning so real hydration bugs stay visible.
+    <html
+      lang="en"
+      className={`${firaSans.variable} ${firaCode.variable}`}
+      suppressHydrationWarning
+    >
       <body className="h-screen overflow-hidden bg-bg text-fg antialiased">
         {children}
       </body>

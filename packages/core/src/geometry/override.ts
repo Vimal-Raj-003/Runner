@@ -12,19 +12,31 @@ import type { RunnerEdge, RunnerNode, RunnerTree } from './tree';
 export interface Overrides {
   diaByLevel?: Record<string, number>;  // key = levelKey, mm
   lenByLevel?: Record<string, number>;  // key = levelKey, mm (from-centre for symmetric levels)
+  /**
+   * Per-edge overrides — keyed by edge.id. Take precedence over diaByLevel.
+   * Required for asymmetric layouts (Fishbone Grad, T-Runner, Inline) where
+   * different sub-runners feeding different path lengths must carry
+   * different diameters to balance fill time.
+   */
+  diaByEdge?: Record<number, number>;
+  lenByEdge?: Record<number, number>;
 }
 
 /**
- * Applies diameter overrides in-place.
+ * Applies diameter overrides in-place. Per-edge values win over per-level.
  * Length overrides are applied separately because they also translate
  * downstream geometry.
  */
 export function applyDiameterOverrides(edges: RunnerEdge[], overrides: Overrides): void {
-  if (!overrides.diaByLevel) return;
   for (const e of edges) {
-    const override = overrides.diaByLevel[e.levelKey];
-    if (override && override > 0) {
-      e.diaMm = override;
+    const edgeOverride = overrides.diaByEdge?.[e.id];
+    if (edgeOverride && edgeOverride > 0) {
+      e.diaMm = edgeOverride;
+      continue;
+    }
+    const levelOverride = overrides.diaByLevel?.[e.levelKey];
+    if (levelOverride && levelOverride > 0) {
+      e.diaMm = levelOverride;
     }
   }
 }
@@ -36,7 +48,7 @@ export function applyDiameterOverrides(edges: RunnerEdge[], overrides: Overrides
  * the same delta.
  */
 export function applyLengthOverrides(tree: RunnerTree, overrides: Overrides): void {
-  if (!overrides.lenByLevel) return;
+  if (!overrides.lenByLevel && !overrides.lenByEdge) return;
 
   const childrenOf = buildChildMap(tree);
 
@@ -47,7 +59,11 @@ export function applyLengthOverrides(tree: RunnerTree, overrides: Overrides): vo
   for (let depth = 0; depth <= maxDepth; depth++) {
     const edgesAtDepth = tree.edges.filter((e) => e.depth === depth);
     for (const edge of edgesAtDepth) {
-      const target = overrides.lenByLevel[edge.levelKey];
+      // Per-edge wins over per-level so the panel can drive individual
+      // sub-runner lengths after edge-class splitting.
+      const edgeTarget = overrides.lenByEdge?.[edge.id];
+      const levelTarget = overrides.lenByLevel?.[edge.levelKey];
+      const target = (edgeTarget && edgeTarget > 0) ? edgeTarget : levelTarget;
       if (!target || target <= 0) continue;
       applyLength(edge, target, tree.nodes, tree.edges, tree.cavities, childrenOf);
     }
@@ -69,7 +85,13 @@ function applyLength(
   const dx = child.x - parent.x;
   const dz = child.z - parent.z;
   const currentLen = Math.sqrt(dx * dx + dz * dz);
-  if (currentLen < 1e-6) return;
+  // Zero-direction edges (gate drops) live in the y-axis only — no 2D
+  // motion is possible. Just update the edge's intrinsic length and let
+  // the renderer pick up the new value; descendants don't move.
+  if (currentLen < 1e-6) {
+    edge.lenMm = targetLenMm;
+    return;
+  }
 
   const dirX = dx / currentLen;
   const dirZ = dz / currentLen;

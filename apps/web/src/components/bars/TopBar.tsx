@@ -4,7 +4,7 @@ import { useWorkspace } from '@/state/store';
 import { validLayouts } from '@runner/core';
 import { ChipButton } from '../ui/Button';
 
-const CAVITY_OPTIONS = [2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24, 32];
+const CAVITY_OPTIONS = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24, 32];
 
 function Sep() {
   return <div className="mx-1 h-5 w-px bg-border" aria-hidden="true" />;

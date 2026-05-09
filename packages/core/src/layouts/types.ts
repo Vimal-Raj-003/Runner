@@ -10,6 +10,7 @@
 import type { RunnerTree } from '../geometry/tree';
 
 export type LayoutId =
+  | 'single'
   | 'h_bridge'
   | 'radial'
   | 'fish_sym'
@@ -28,6 +29,21 @@ export interface LayoutMetadata {
   readonly description: string;
   readonly balance: BalanceType;
   validate(n: number): { ok: boolean; reason?: string };
+  /**
+   * Cavity counts at which this layout should be HIDDEN from the toolbar
+   * even though `validate(n)` says it works. Used to suppress visually
+   * redundant variants (e.g. Fishbone Grad collapses to Fishbone Sym at
+   * low N; T-Runner collapses to Inline when there's only one row).
+   * Optional — defaults to "always show when valid".
+   */
+  readonly hiddenAtN?: readonly number[];
+  /**
+   * Always hide this layout from the toolbar. The generator stays
+   * registered so existing saved-state references still resolve, but
+   * the toolbar pretends the layout doesn't exist. Used for retired
+   * variants (e.g. Fishbone Grad — superseded by the auto-balancer).
+   */
+  readonly hidden?: boolean;
 }
 
 export interface LayoutGenerator extends LayoutMetadata {
