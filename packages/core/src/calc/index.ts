@@ -6,5 +6,7 @@ export * from './pressureDrop';
 export * from './shear';
 export * from './thermal';
 export * from './balance';
+export * from './fillTime';
+export * from './runnerBalance';
 export * from './yield';
 export * from './pipeline';

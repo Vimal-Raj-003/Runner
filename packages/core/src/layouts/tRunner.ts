@@ -2,7 +2,7 @@
  * T-Runner — horizontal main bar + vertical drops to each cavity.
  */
 
-import { addCavity, addEdge, addNode, buildTree, diaForDepth, newContext } from './build';
+import { addCavityWithDrop, addEdge, addNode, buildTree, diaForDepth, newContext } from './build';
 import type { LayoutGenerator } from './types';
 
 const SX = 100;
@@ -14,6 +14,10 @@ export const tRunnerLayout: LayoutGenerator = {
   label: 'T-Runner',
   description: 'T-shaped main with branch drops',
   balance: 'Artificial',
+  // At 4–10 cavities T-Runner collapses to a single row of cavities —
+  // visually indistinguishable from Inline. Only N=12 (where rows ≥ 2
+  // gives a true T-shape) survives in the toolbar.
+  hiddenAtN: [4, 6, 8, 10],
   validate(n) {
     if (n < 4 || n > 12 || n % 2 !== 0) {
       return { ok: false, reason: 'T-Runner: even count 4–12' };
@@ -51,9 +55,9 @@ export const tRunnerLayout: LayoutGenerator = {
       for (let c = 0; c < cols && count < n; c++) {
         const x = (c - (cols - 1) / 2) * SX;
         const z = (r - (rows - 1) / 2) * SY;
-        const { node: cav } = addCavity(ctx, x, z);
+        const { gate } = addCavityWithDrop(ctx, x, z, 2);
         const anchor = anchors[c]!;
-        addEdge(ctx, anchor.node, cav, 1, diaForDepth(MAIN_DIA, 1));
+        addEdge(ctx, anchor.node, gate, 1, diaForDepth(MAIN_DIA, 1));
         count++;
       }
     }

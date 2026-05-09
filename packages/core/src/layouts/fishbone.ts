@@ -5,10 +5,24 @@
  *  - Graduated (stepped): branch dia grows with distance from sprue, to
  *                         partially compensate for natural imbalance
  *  - One-sided:           branches only on one side of the spine
+ *
+ * Topology — CHAIN:
+ *   The spine extends out of the sprue in both directions. Each spine
+ *   junction is the *child* of the previous junction (or of the sprue for
+ *   the closest junction on each side). This means edge.lenMm reflects the
+ *   incremental segment length, so:
+ *      Section 1 (sprue → 1st junction)  =  L1 mm
+ *      Section 2 (1st → 2nd junction)    =  L2 mm
+ *      Sprue → 2nd junction              =  L1 + L2 mm  (cumulative, derived)
+ *
+ *   For odd cavity counts the sprue itself acts as the middle "junction"
+ *   so the middle pair branches directly from the sprue (no zero-length
+ *   spine edge).
  */
 
-import { addCavity, addEdge, addNode, buildTree, diaForDepth, newContext } from './build';
+import { addCavityWithDrop, addEdge, addNode, buildTree, diaForDepth, newContext } from './build';
 import type { LayoutGenerator } from './types';
+import type { RunnerNode } from '../geometry/tree';
 
 const SPINE_DY = 80;
 const BRANCH_DX = 120;
@@ -21,33 +35,61 @@ function fishSym(n: number, stepped: boolean) {
       const ctx = newContext();
       const sprue = addNode(ctx, 'sprue', 0, 0);
       const pairs = n / 2;
-      const spineLen = (pairs - 1) * SPINE_DY;
 
-      // Spine endpoints (two nodes on the Z axis)
-      const topSpine = addNode(ctx, 'junction', 0, -spineLen / 2);
-      const botSpine = addNode(ctx, 'junction', 0, spineLen / 2);
-      addEdge(ctx, sprue, topSpine, 0, SPINE_DIA);
-      addEdge(ctx, sprue, botSpine, 0, SPINE_DIA);
+      // Distribute pairs above/below the sprue. Odd pairs put the centre
+      // pair directly on the sprue so the spine never has a zero-length
+      // edge (which the calc engine would later filter out anyway).
+      const halfFloor = Math.floor(pairs / 2);
+      const middleAtSprue = pairs % 2 === 1;
 
-      for (let i = 0; i < pairs; i++) {
-        const z = -spineLen / 2 + i * SPINE_DY;
-        const spineNode = addNode(ctx, 'junction', 0, z);
-        // Connect this spine node into the spine chain via sprue (star-style
-        // from root — functionally equivalent for calc purposes)
-        if (i !== 0 && i !== pairs - 1) {
-          addEdge(ctx, sprue, spineNode, 0, SPINE_DIA);
-        }
+      // Build the chain ABOVE the sprue (negative-z direction). Order in
+      // `aboveNodes` runs from sprue outward (closest to farthest).
+      const aboveNodes: RunnerNode[] = [];
+      let prev: RunnerNode = sprue;
+      for (let i = 0; i < halfFloor; i++) {
+        const z = -(i + 1) * SPINE_DY;
+        const node = addNode(ctx, 'junction', 0, z);
+        addEdge(ctx, prev, node, 0, SPINE_DIA);
+        aboveNodes.push(node);
+        prev = node;
+      }
 
-        const { node: leftCav }  = addCavity(ctx, -BRANCH_DX, z);
-        const { node: rightCav } = addCavity(ctx,  BRANCH_DX, z);
+      // Build the chain BELOW the sprue (positive-z direction).
+      const belowNodes: RunnerNode[] = [];
+      prev = sprue;
+      for (let i = 0; i < halfFloor; i++) {
+        const z = (i + 1) * SPINE_DY;
+        const node = addNode(ctx, 'junction', 0, z);
+        addEdge(ctx, prev, node, 0, SPINE_DIA);
+        belowNodes.push(node);
+        prev = node;
+      }
+
+      // Anchors top → bottom: reverse aboveNodes (so the farthest-top junction
+      // is index 0), insert sprue if odd, then the below chain in order.
+      const anchors: RunnerNode[] = [
+        ...[...aboveNodes].reverse(),
+        ...(middleAtSprue ? [sprue] : []),
+        ...belowNodes,
+      ];
+
+      // Cavity branches — graduated diameter walks linearly from top to bottom
+      // when `stepped` is true. Each cavity gets a gate-junction + drop edge
+      // so per-cavity drop dia/len is tunable by the auto-balance solver.
+      const span = Math.max(anchors.length - 1, 1);
+      const dropDepth = 2; // sub = depth 1; drops sit one level deeper
+      for (let i = 0; i < anchors.length; i++) {
+        const anchor = anchors[i]!;
+        const z = anchor.z;
+        const { gate: leftGate }  = addCavityWithDrop(ctx, -BRANCH_DX, z, dropDepth);
+        const { gate: rightGate } = addCavityWithDrop(ctx,  BRANCH_DX, z, dropDepth);
 
         const branchDia = stepped
-          ? diaForDepth(BRANCH_DIA_BASE + 2 * (i / Math.max(pairs - 1, 1)), 1)
+          ? diaForDepth(BRANCH_DIA_BASE + 2 * (i / span), 1)
           : diaForDepth(BRANCH_DIA_BASE, 1);
 
-        const anchor = i === 0 ? topSpine : i === pairs - 1 ? botSpine : spineNode;
-        addEdge(ctx, anchor, leftCav, 1, branchDia);
-        addEdge(ctx, anchor, rightCav, 1, branchDia);
+        addEdge(ctx, anchor, leftGate, 1, branchDia);
+        addEdge(ctx, anchor, rightGate, 1, branchDia);
       }
 
       return buildTree(ctx);
@@ -76,6 +118,11 @@ export const fishStepLayout: LayoutGenerator = {
   label: 'Fishbone Grad Ø',
   description: 'Graduated branch diameters to balance fill',
   balance: 'Artificial',
+  // Hidden everywhere — the "graduated" branch-Ø ramp is now subsumed by
+  // the multi-objective auto-balancer running on Fishbone Sym, which can
+  // produce per-section Ø differentiation on demand. The variant is kept
+  // only so existing user state (layoutId='fish_step') still resolves.
+  hidden: true,
   validate(n) {
     if (n < 4 || n % 2 !== 0) {
       return { ok: false, reason: 'Fishbone graduated requires an even number ≥ 4' };
@@ -99,18 +146,43 @@ export const fishOneLayout: LayoutGenerator = {
   generate(n) {
     const ctx = newContext();
     const sprue = addNode(ctx, 'sprue', 0, 0);
-    const spineLen = (n - 1) * SPINE_DY;
-    const topSpine = addNode(ctx, 'junction', 0, -spineLen / 2);
-    const botSpine = addNode(ctx, 'junction', 0, spineLen / 2);
-    addEdge(ctx, sprue, topSpine, 0, SPINE_DIA);
-    addEdge(ctx, sprue, botSpine, 0, SPINE_DIA);
 
-    for (let i = 0; i < n; i++) {
-      const z = -spineLen / 2 + i * SPINE_DY;
-      const { node } = addCavity(ctx, BRANCH_DX, z);
-      const anchor = i === 0 ? topSpine : i === n - 1 ? botSpine : addNode(ctx, 'junction', 0, z);
-      if (i !== 0 && i !== n - 1) addEdge(ctx, sprue, anchor, 0, SPINE_DIA);
-      addEdge(ctx, anchor, node, 1, diaForDepth(BRANCH_DIA_BASE, 1));
+    // Chain layout: same structure as fishSym but each anchor gets only
+    // ONE cavity (on the +x side). For odd n the middle cavity sits on
+    // the sprue's z-axis level and branches directly from it.
+    const halfFloor = Math.floor(n / 2);
+    const middleAtSprue = n % 2 === 1;
+
+    const aboveNodes: RunnerNode[] = [];
+    let prev: RunnerNode = sprue;
+    for (let i = 0; i < halfFloor; i++) {
+      const z = -(i + 1) * SPINE_DY;
+      const node = addNode(ctx, 'junction', 0, z);
+      addEdge(ctx, prev, node, 0, SPINE_DIA);
+      aboveNodes.push(node);
+      prev = node;
+    }
+
+    const belowNodes: RunnerNode[] = [];
+    prev = sprue;
+    for (let i = 0; i < halfFloor; i++) {
+      const z = (i + 1) * SPINE_DY;
+      const node = addNode(ctx, 'junction', 0, z);
+      addEdge(ctx, prev, node, 0, SPINE_DIA);
+      belowNodes.push(node);
+      prev = node;
+    }
+
+    const anchors: RunnerNode[] = [
+      ...[...aboveNodes].reverse(),
+      ...(middleAtSprue ? [sprue] : []),
+      ...belowNodes,
+    ];
+
+    const dropDepth = 2;
+    for (const anchor of anchors) {
+      const { gate } = addCavityWithDrop(ctx, BRANCH_DX, anchor.z, dropDepth);
+      addEdge(ctx, anchor, gate, 1, diaForDepth(BRANCH_DIA_BASE, 1));
     }
     return buildTree(ctx);
   },

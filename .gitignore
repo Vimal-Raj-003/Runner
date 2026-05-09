@@ -12,3 +12,6 @@ coverage
 Thumbs.db
 *.tsbuildinfo
 .vercel
+
+# Claude Code local harness state — per-user, not part of the repo
+.claude/

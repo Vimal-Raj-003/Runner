@@ -41,7 +41,9 @@ import {
   type MeltTempDropResult,
 } from './thermal';
 import { analyseBalance, type BalanceResult } from './balance';
+import { optimizeForFillBalance } from './runnerBalance';
 import { computeYield, type YieldResult } from './yield';
+import { DEFAULT_GATE_DROP_LEN_MM } from '../layouts/build';
 
 export interface MachineInput {
   nozzleDiaMm: number;
@@ -70,6 +72,52 @@ export interface CalcInput {
   overrides: Overrides;
   /** Optional explicit gate geometry override (else computed from Beaumont) */
   gateGeometry?: { widthMm: number; depthMm: number };
+  /**
+   * Multi-objective weight λ in `loss = σ_fill + λ·σ_vol` for the auto-
+   * balance solver. 0 = fill-only (legacy), 1 = balanced, ~3 = volume-priority.
+   * Only used by the default-balanced step (3b) when no overrides exist.
+   */
+  balanceVolumeWeight?: number;
+  /**
+   * Optional gate location, in part-local mm. Coordinate frame:
+   *   • Origin at part AABB centre on X and Z; AABB top (max Y) on Y.
+   *   • Y is therefore ≤ 0 — depth into the part from its top surface.
+   *   • Replicated to every cavity (same gate spec for every part copy).
+   *
+   * When set, every drop edge re-targets to land on this point: the drop's
+   * gate junction shifts to (cavity.x + gx, runnerPlane, cavity.z + gz),
+   * the drop length grows by |gy| so the drop bottom hits the picked
+   * surface, and the upstream sub-runner length is recomputed because
+   * the gate junction moved horizontally. When null, drops keep their
+   * default top-centre AABB target (legacy behaviour).
+   */
+  gate?: { partLocalPoint: [number, number, number] };
+  /**
+   * When false, suppress the vertical gate drop: drop edge length is
+   * forced to zero and the gate junction is co-located with the cavity
+   * node. Used for layouts where the part is placed horizontally and the
+   * runner plugs in directly at the gate point. Default true.
+   */
+  useGateDrop?: boolean;
+  /**
+   * If positive, post-process the generated tree so the minimum cavity-
+   * to-cavity spacing is at least `max(partW, partD) + this margin`.
+   * Larger parts therefore force the layout to scale up, preventing the
+   * imported geometry from physically overlapping its neighbours or the
+   * horizontal runner segments. 0 = no scaling.
+   */
+  partOverlapMarginMm?: number;
+  /**
+   * When true, rotate every part around its gate so the gate ends up on
+   * the line between the cavity centre and the upstream junction. Each
+   * cavity's gate-junction shifts by `r = √(gx² + gz²)` along that line
+   * toward the parent — the sub-runner becomes straight and as short as
+   * possible given the gate's part-local radial distance.
+   *
+   * Without this, every cavity gets the same `(gx, gz)` offset and the
+   * sub-runners are diagonal V-shapes rather than straight lines.
+   */
+  autoMirrorGate?: boolean;
 }
 
 export interface LevelResult {
@@ -131,6 +179,57 @@ export function runCalculations(input: CalcInput): CalcResult {
   const generator = getLayout(input.layoutId);
   const tree = generator.generate(input.cavities);
 
+  // 1.5 — Auto-scale layout so the part doesn't physically overlap its
+  // neighbours or the runner network. Only fires when the caller has
+  // *explicitly* requested it via `partOverlapMarginMm > 0`; an absent
+  // or zero margin preserves the legacy "let detectCavityOverlaps warn
+  // the user" behaviour relied on by older tests and snapshot inputs.
+  // When on, every node + cavity position is multiplied by a single
+  // uniform factor so `min(cavity_to_cavity_dist) ≥ max(W, D) + margin`.
+  // Edge lengths get recomputed from the scaled positions; drops keep
+  // their lenMm (purely vertical, independent of XZ scale).
+  const overlapMargin = input.partOverlapMarginMm ?? 0;
+  const requiredSpacing =
+    overlapMargin > 0
+      ? Math.max(input.part.dimsMm.w, input.part.dimsMm.d) + overlapMargin
+      : 0;
+  if (requiredSpacing > 0 && tree.cavities.length > 1) {
+    let minDist = Infinity;
+    for (let i = 0; i < tree.cavities.length; i++) {
+      for (let j = i + 1; j < tree.cavities.length; j++) {
+        const a = tree.cavities[i]!;
+        const b = tree.cavities[j]!;
+        const d = Math.hypot(a.x - b.x, a.z - b.z);
+        if (d > 0 && d < minDist) minDist = d;
+      }
+    }
+    if (Number.isFinite(minDist) && minDist < requiredSpacing) {
+      const scale = requiredSpacing / minDist;
+      // Sprue stays at the origin so the layout's symmetry is preserved.
+      for (const n of tree.nodes) {
+        if (n.kind === 'sprue') continue;
+        (n as { x: number; z: number }).x *= scale;
+        (n as { x: number; z: number }).z *= scale;
+      }
+      for (const c of tree.cavities) {
+        c.x *= scale;
+        c.z *= scale;
+      }
+      // Recompute every non-drop edge length from its new endpoints —
+      // drops carry their vertical extent in lenMm and aren't affected.
+      const nodeById = new Map(tree.nodes.map((n) => [n.id, n] as const));
+      for (const e of tree.edges) {
+        if (e.isDrop) continue;
+        const parent = nodeById.get(e.parentNodeId);
+        const child = nodeById.get(e.childNodeId);
+        if (!parent || !child) continue;
+        const dx = child.x - parent.x;
+        const dz = child.z - parent.z;
+        e.lenMm = Math.sqrt(dx * dx + dz * dz);
+      }
+    }
+  }
+
   // 2 — Pye base diameter
   const maxPath = Math.max(
     1,
@@ -140,12 +239,214 @@ export function runCalculations(input: CalcInput): CalcResult {
   const baseDia = pye.diameterMm;
   const recommendedDia = roundToStandardDiameter(baseDia);
 
-  // 3 — Assign per-level diameters from recommendedDia and apply overrides
+  // 2.5 — Apply gate location, if the user picked one. Shifts every
+  // gate junction (and its child cavity node) to (cavity.x + gx, _,
+  // cavity.z + gz) on the runner plane, lengthens the drop by |gy| so
+  // it terminates exactly at the picked surface point, and recomputes
+  // the upstream sub-runner length because the gate junction moved.
+  // Cavity *records* (used for overlap detection and part visualisation)
+  // stay at their original positions — the part itself doesn't move,
+  // only the runner endpoint into it does.
+  // Drop suppression: when the user disables the gate drop, we apply
+  // the same gate-junction shift logic as the with-drop case but force
+  // the drop edge to zero length. The drop-only-from-sprue layouts also
+  // collapse to zero length cleanly, since the 3D Euclidean recompute
+  // below picks up dy = 0 in that branch.
+  const dropEnabled = input.useGateDrop !== false; // undefined ⇒ enabled
+
+  if (input.gate?.partLocalPoint || !dropEnabled) {
+    const [gx, gy, gz] = input.gate?.partLocalPoint ?? [0, 0, 0];
+    const r = Math.hypot(gx, gz);
+    const autoMirror = input.autoMirrorGate === true;
+    for (const cav of tree.cavities) {
+      const cavityNode = tree.nodes.find(
+        (n) => n.kind === 'cavity' && n.cavityId === cav.id,
+      );
+      if (!cavityNode) continue;
+      const dropEdge = tree.edges.find(
+        (e) => e.isDrop && e.childNodeId === cavityNode.id,
+      );
+      if (!dropEdge) continue;
+      const dropParent = tree.nodes.find((n) => n.id === dropEdge.parentNodeId);
+
+      // Per-cavity placement of the TWO drop endpoints:
+      //
+      //   • dropParent (gate junction) — top of the drop edge. With
+      //     auto-mirror on, this sits at `cav + r·unit(upstream-cav)`,
+      //     i.e. distance `r` from the cavity centre along the natural
+      //     upstream→cavity direction. The sub-runner from upstream to
+      //     gate_junction is then a straight extension of the layout's
+      //     own runner line — for cardinal-axis layouts (H-Bridge,
+      //     T-Runner, Inline) this puts the junction on a cardinal
+      //     axis; for radial layouts it puts it along the radial spoke.
+      //     Either way, no V-shape kink at the gate.
+      //
+      //   • cavityNode (gate orifice on the part) — bottom of the drop
+      //     edge in xz, with the part rotated so it's axis-aligned. The
+      //     part is rotated by `yRotSnapped` (rotation snapped to 90°)
+      //     around its own centre, so the gate corner lands at
+      //     `cav + R(yRotSnapped)·(gx, gz)`.
+      //
+      // The drop edge therefore SPANS two different xz positions — it's
+      // the angled bridge between the straight runner and the rotated
+      // part's gate corner. Drop length picks up that horizontal
+      // displacement plus the vertical drop.
+      //
+      // Without auto-mirror (legacy uniform offset) both endpoints
+      // collapse to `cav + (gx, gz)` and the drop is purely vertical,
+      // matching the original behaviour.
+      const gateAngleCW = Math.atan2(-gz, gx);
+      let cavGx = gx;
+      let cavGz = gz;
+      let jxnGx = gx;
+      let jxnGz = gz;
+      if (autoMirror && r > 1e-3 && dropParent && dropParent.kind === 'junction') {
+        const subRunnerEdge = tree.edges.find(
+          (e) => !e.isDrop && e.childNodeId === dropParent.id,
+        );
+        const upstream = subRunnerEdge
+          ? tree.nodes.find((n) => n.id === subRunnerEdge.parentNodeId)
+          : null;
+        if (upstream) {
+          const dx = upstream.x - cav.x;
+          const dz = upstream.z - cav.z;
+          const dist = Math.hypot(dx, dz);
+          if (dist > 1e-3) {
+            // Junction sits `r` along the unit upstream-direction. The
+            // sub-runner becomes (upstream → junction) which is a perfect
+            // straight extension of the layout's own runner line.
+            const ux = dx / dist;
+            const uz = dz / dist;
+            jxnGx = ux * r;
+            jxnGz = uz * r;
+
+            // Part rotation snapped to 0/90/180/270° — keeps the part
+            // axis-aligned even when the gate is at a corner, while
+            // letting the drop bridge the gap from the straight runner.
+            // Three.js Y rotation (right-handed):
+            //   x' =  x·cos(θ) + z·sin(θ)
+            //   z' = -x·sin(θ) + z·cos(θ)
+            const dirToUpstreamCW = Math.atan2(-dz, dx);
+            const quanta = Math.PI / 2;
+            const desiredYRot = dirToUpstreamCW - gateAngleCW;
+            const yRotSnapped = Math.round(desiredYRot / quanta) * quanta;
+            const c = Math.cos(yRotSnapped);
+            const s = Math.sin(yRotSnapped);
+            cavGx =  gx * c + gz * s;
+            cavGz = -gx * s + gz * c;
+          }
+        }
+      }
+
+      // Move the cavity node and its gate junction. The two endpoints
+      // can now differ — the junction sits at the cardinal point on the
+      // sub-runner, the cavity node sits at the rotated part's gate
+      // corner, and the drop edge bridges them. RunnerNode.x/z are typed
+      // readonly so we cast to widen — same trick used in geometry/override.ts.
+      const cavM = cavityNode as { x: number; z: number };
+      cavM.x = cav.x + cavGx;
+      cavM.z = cav.z + cavGz;
+      if (dropParent && dropParent.kind === 'junction') {
+        const pM = dropParent as { x: number; z: number };
+        pM.x = cav.x + jxnGx;
+        pM.z = cav.z + jxnGz;
+      }
+
+      // Drop length: Manhattan = vertical + horizontal connector. The
+      // viewer renders the drop as a real L-shape (straight vertical
+      // tube + straight horizontal gate connector at part-top level),
+      // so the flow path length is the SUM of the two legs, not the
+      // diagonal. Drop suppression collapses the vertical component
+      // to 0 but keeps the horizontal bridge.
+      const verticalDrop = dropEnabled ? (DEFAULT_GATE_DROP_LEN_MM - gy) : 0;
+      if (dropParent) {
+        const dxBridge = cavityNode.x - dropParent.x;
+        const dzBridge = cavityNode.z - dropParent.z;
+        const horizontalBridge = Math.sqrt(dxBridge * dxBridge + dzBridge * dzBridge);
+        dropEdge.lenMm = verticalDrop + horizontalBridge;
+      }
+
+      // Recompute the sub-runner length from the new gate-junction
+      // position. With auto-mirror on this is |upstream-cavity| - r and
+      // perfectly cardinal-aligned; without auto-mirror it's the
+      // diagonal distance from upstream to the shifted gate junction.
+      if (dropParent && dropParent.kind === 'junction') {
+        const subRunnerEdge = tree.edges.find(
+          (e) => !e.isDrop && e.childNodeId === dropParent.id,
+        );
+        if (subRunnerEdge) {
+          const upstream = tree.nodes.find((n) => n.id === subRunnerEdge.parentNodeId);
+          if (upstream) {
+            const dx = dropParent.x - upstream.x;
+            const dz = dropParent.z - upstream.z;
+            subRunnerEdge.lenMm = Math.sqrt(dx * dx + dz * dz);
+          }
+        }
+      }
+    }
+  }
+
+  // 3 — Assign per-level diameters from recommendedDia and apply overrides.
+  // Drop edges keep their layout-supplied default (typically 6 mm, set by
+  // addCavityWithDrop) — they don't follow the depth-cascade, since their
+  // role is the gate orifice, not a runner segment.
   for (const e of tree.edges) {
+    if (e.isDrop) continue;
     e.diaMm = roundToStandardDiameter(recommendedDia * Math.pow(0.85, e.depth));
   }
   applyDiameterOverrides(tree.edges, input.overrides);
   applyLengthOverrides(tree, input.overrides);
+
+  // 3b — Default-balanced state. When NO user overrides exist, run the
+  // hydraulic balancer up-front so the runner system arrives at the
+  // panel already tuned to equal cavity fill time. The solver writes
+  // its result directly into tree.edges; downstream calculation steps
+  // (pressure drop, balance metrics, fill time) then operate on the
+  // already-balanced geometry.
+  const overridesEmpty =
+    Object.keys(input.overrides.diaByLevel ?? {}).length === 0 &&
+    Object.keys(input.overrides.lenByLevel ?? {}).length === 0 &&
+    Object.keys(input.overrides.diaByEdge  ?? {}).length === 0 &&
+    Object.keys(input.overrides.lenByEdge  ?? {}).length === 0;
+  if (overridesEmpty && tree.edges.length > 0) {
+    const tempK = ((input.material.tMeltMin + input.material.tMeltMax) / 2) + 273.15;
+    const eta0 = apparentViscosity(input.material, 1000, tempK);
+    const cavVol0 = input.part.volumeMm3;
+    const totalQ0 = (cavVol0 * input.cavities + 0) / 1; // sprue.volumeMm3 not yet computed; ok for relative split
+    const balance = optimizeForFillBalance({
+      tree,
+      viscosityPaS: eta0,
+      totalFlowMm3PerS: totalQ0,
+      powerLawN: input.material.powerLaw?.n,
+      cavityVolumeMm3: cavVol0,
+      initialDiaByLevel: {},
+      initialLenByLevel: {},
+      lockedLevels: new Set(),
+      volumeWeight: input.balanceVolumeWeight,
+      // Skip length-rebuild — the panel-side rebuild callback isn't
+      // available here, and diameter-only refinement is sufficient for
+      // a default-balanced state. The user can run the full Balance
+      // action manually if length-tuning is needed.
+    });
+    // Apply solver result directly to tree edges. Tunable levels are the
+    // depth-based runner levels (L0, L1, …) PLUS gate drops (L_drop) — the
+    // earlier filter `/^L\d+$/` silently dropped solver-suggested drop Ø
+    // changes, leaving drops at their cascade default no matter what λ
+    // (volume weight) the solver was running with.
+    const tunableLevelRe = /^(L\d+|L_drop)$/;
+    for (const e of tree.edges) {
+      if (!tunableLevelRe.test(e.levelKey)) continue;
+      const edgeDia = balance.diaByEdge[e.id];
+      if (edgeDia !== undefined && edgeDia > 0) {
+        e.diaMm = edgeDia;
+        continue;
+      }
+      const levelDia = balance.diaByLevel[e.levelKey];
+      if (levelDia !== undefined && levelDia > 0) {
+        e.diaMm = levelDia;
+      }
+    }
+  }
 
   // 4 — Gate sizing (Beaumont) — fallback to override if supplied
   const gate = computeGate({
@@ -372,6 +673,8 @@ export function runCalculations(input: CalcInput): CalcResult {
   };
 
   function parseDepth(levelKey: string): number {
+    // Drops sort *after* every depth-N level in the panel/tree summary.
+    if (levelKey === 'L_drop') return 1000;
     return parseInt(levelKey.replace(/[^0-9]/g, ''), 10) || 0;
   }
 }

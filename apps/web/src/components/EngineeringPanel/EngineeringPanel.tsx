@@ -4,6 +4,7 @@ import type { CalcResult } from '@runner/core';
 import { RUNNER_PROFILES } from '@runner/core';
 import { useWorkspace } from '@/state/store';
 import { InputParameters } from './InputParameters';
+import { PartImportPanel } from './PartImportPanel';
 import { Row, Chip } from './Row';
 import { GateTypesReference } from './GateTypesReference';
 import { PanelHeader } from '../ui/PanelHeader';
@@ -38,6 +39,10 @@ export function EngineeringPanel({ calc }: { calc: CalcResult }) {
 
       <Collapsible title="Input Parameters" defaultOpen>
         <InputParameters />
+      </Collapsible>
+
+      <Collapsible title="Part Import" defaultOpen={false}>
+        <PartImportPanel />
       </Collapsible>
 
       <Collapsible title="Runner Sizing" hint="D = ⁴√(W) × ⁴√(L) / 3.7" defaultOpen>

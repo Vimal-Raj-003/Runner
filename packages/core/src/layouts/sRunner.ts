@@ -2,7 +2,7 @@
  * S-Runner — two-cavity S-sweep, naturally balanced mirror.
  */
 
-import { addCavity, addEdge, addNode, buildTree, newContext } from './build';
+import { addCavityWithDrop, addEdge, addNode, buildTree, newContext } from './build';
 import type { LayoutGenerator } from './types';
 
 const SX = 120;
@@ -23,15 +23,15 @@ export const sRunnerLayout: LayoutGenerator = {
     const mid = SX * 0.5;
     // Left arm with mid-bend
     const leftBend = addNode(ctx, 'junction', -mid, -mid * 0.6);
-    const { node: leftCav } = addCavity(ctx, -SX, 0);
+    const { gate: leftGate } = addCavityWithDrop(ctx, -SX, 0, 1);
     addEdge(ctx, sprue, leftBend, 0, MAIN_DIA);
-    addEdge(ctx, leftBend, leftCav, 0, MAIN_DIA);
+    addEdge(ctx, leftBend, leftGate, 0, MAIN_DIA);
 
     // Right arm with opposite mid-bend
     const rightBend = addNode(ctx, 'junction', mid, mid * 0.6);
-    const { node: rightCav } = addCavity(ctx, SX, 0);
+    const { gate: rightGate } = addCavityWithDrop(ctx, SX, 0, 1);
     addEdge(ctx, sprue, rightBend, 0, MAIN_DIA);
-    addEdge(ctx, rightBend, rightCav, 0, MAIN_DIA);
+    addEdge(ctx, rightBend, rightGate, 0, MAIN_DIA);
 
     return buildTree(ctx);
   },
